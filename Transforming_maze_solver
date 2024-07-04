@@ -1,0 +1,102 @@
+from heapq import heappush, heappop
+
+"""
+Insight: 4 90 degree rotations make the number same
+
+Complete algorithm:
+
+A ball need to check its neighbours after rotation to move.
+Another condition is do not move in any of the 4 neighbours and rotate.
+A number is rotated in 90 degree means take MSB and make it LSB.
+Number rotation: Multiply number with 2 and wrap in range 0 14 using modulus.
+Checking allowed movements using bit masking
+Masking 
+North with 0b1000
+West with 0b0100
+South with 0b0010
+East with 0b0001
+
+""" 
+
+
+def rotate(num, d):
+    if num == 15:
+        return num
+    for _ in range(d):
+        num = (num * 2) % 15
+    return num
+
+
+
+def maze_solver(maze):
+
+    #Convert the table into mutable 2D list from immutable tuples.
+    maze = list(map(list, maze))
+
+    #Getting starting and ending positions
+    for i in range(len(maze)):
+        for j in range(len(maze[i])):
+            if maze[i][j] == 'B':
+                start_i = i
+                start_j = j
+            elif maze[i][j] == 'X':
+                end_i = i
+                end_j = j    
+  
+    #Making start and end wall free using 0
+    maze[start_i][start_j] = maze[end_i][end_j] = 0
+    HEIGHT = len(maze)
+    WIDTH = len(maze[0])
+
+    #Using heap for all possible paths on basis of priority uptil 3 rotations
+    heap = [(0, start_i, start_j, [''])]
+    visited = {(start_i, start_j, 0)}
+
+    while heap:
+        rotation, i, j, path = heappop(heap)
+
+        # if you reach end return the path
+        if i == end_i and j == end_j:
+            return path
+
+        #Taking all moves of all intervals except the last one 
+        ( * moves, current_move) = path
+
+        #wraping rotaion (rotation can be 0 1 2 3)
+        warpped_rotation = rotation % 4 
+  
+        curr = rotate(maze[i][j], warpped_rotation)
+      
+        #North neighbour checking
+        if i > 0 and 
+        curr & 8 == rotate(maze[i - 1][j], warpped_rotation) & 2 == 0 and 
+        (i - 1, j, warpped_rotation) not in visited:
+            visited.add((i - 1, j, warpped_rotation))
+            heappush(heap, (rotation, i - 1, j, moves + [current_move + 'N']))
+
+        #West neighbour checking
+        if j > 0 and 
+        curr & 4 == rotate(maze[i][j - 1], warpped_rotation) & 1 == 0 and 
+        (i, j - 1, warpped_rotation) not in visited:
+            visited.add((i, j - 1, warpped_rotation))
+            heappush(heap, (rotation, i, j - 1, moves + [current_move + 'W']))
+
+        #South neighbour checking
+        if i < HEIGHT - 1 and
+        curr & 2 == rotate(maze[i + 1][j], warpped_rotation) & 8 == 0 and
+        (i + 1, j, warpped_rotation) not in visited:
+            visited.add((i + 1, j, warpped_rotation))
+            heappush(heap, (rotation, i + 1, j, moves + [current_move + 'S']))
+
+        # East neighbour checking
+        if j < WIDTH - 1 and 
+        curr & 1 == rotate(maze[i][j + 1], warpped_rotation) & 4 == 0 and
+        (i, j + 1, warpped_rotation) not in visited:
+            visited .add((i, j + 1, warpped_rotation))
+            heappush(heap, (rotation, i, j + 1, moves + [current_move + 'E']))
+
+        # If the next rotation of current index is not yet discovered
+        # Then put in heap to discover
+        if (i, j, (warpped_rotation + 1) % 4) not in visited:
+            visited.add((i, j, (warpped_rotation + 1) % 4))
+            heappush(heap, (rotation + 1, i, j, path + ['']))
